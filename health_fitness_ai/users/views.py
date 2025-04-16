@@ -185,7 +185,7 @@ def dashboard_view(request):
 
 # Home view
 def home_view(request):
-    return render(request, 'users/home.html')
+    return render(request, 'home.html')
 
 # Notify user signup using Supabase (example feature)
 from .supabase_client import supabase

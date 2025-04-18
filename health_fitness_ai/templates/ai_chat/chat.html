@@ -1,242 +1,210 @@
 {% extends "users/base.html" %}
+
 {% block title %}AI Health Chat{% endblock %}
 
 {% block content %}
-<!-- Font Awesome for Icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #f0f4f8, #d9e2ec);
+        margin: 0;
+        padding: 0;
+    }
+
+    .chat-container {
+        max-width: 700px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-radius: 20px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    .chat-container:hover {
+        transform: scale(1.01);
+    }
+
+    .chat-container h2 {
+        text-align: center;
+        font-size: 28px;
+        color: #333;
+        margin-bottom: 25px;
+    }
+
+    form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    textarea {
+        resize: none;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        font-size: 16px;
+        height: 120px;
+        transition: border 0.2s ease-in-out;
+    }
+
+    textarea:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 16px;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    button[type="submit"] {
+        background-color: #4caf50;
+        color: white;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #45a049;
+    }
+
+    .response {
+        margin-top: 25px;
+        padding: 20px;
+        border-radius: 15px;
+        background: #e6f7ff;
+        border-left: 6px solid #2196F3;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .response.nutrition {
+        background: #fff8e1;
+        border-left: 6px solid #ff9800;
+    }
+
+    .speak-button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        background-color: #333;
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .speak-button:hover {
+        background-color: #111;
+    }
+
+    .mic-button {
+        margin-top: 10px;
+        padding: 8px 16px;
+        background-color: #007bff;
+        color: white;
+        border-radius: 8px;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .mic-button:hover {
+        background-color: #0056b3;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            margin: 20px;
+            padding: 20px;
+        }
+
+        textarea {
+            height: 100px;
+        }
+    }
+</style>
 
 <div class="chat-container">
-    <h2>💬 Chat with Your AI Health Assistant</h2>
+    <h2>🧠 AI Nutrition Assistant</h2>
 
-    <form method="POST" enctype="multipart/form-data" class="chat-form">
+    <form method="POST" onsubmit="return validateForm()">
         {% csrf_token %}
-        <label for="query">Ask a health-related question</label>
-        <textarea name="query" id="query" rows="4" placeholder="e.g. How many calories in a boiled egg?"></textarea>
-
-        <!-- 🎙 Stylish Speak Button -->
-        <button type="button" onclick="startListening()" class="mic-button">
-            <i class="fas fa-microphone mic-icon"></i> Speak
-        </button>
-        <p id="spokenText" class="spoken-text"></p>
-
-        <!-- <label for="image">Or upload an image (coming soon)</label>
-        <input type="file" name="image" accept="image/*" /> -->
-
-        <button type="submit">🚀 Ask Now</button>
+        <textarea id="query" name="query" placeholder="Ask a health-related question...">{{ query }}</textarea>
+        <button type="submit">Send Request</button>
     </form>
 
-    {% if query %}
-        <div class="chat-box">
-            <div class="bubble user">
-                <span class="label">👤 You</span>
-                <p>{{ query }}</p>
-            </div>
-            <div class="bubble ai">
-                <span class="label">🤖 AI</span>
-                <p>{{ response|safe }}</p>
-            </div>
+    <button class="mic-button" onclick="startListening()">🎙️ Speak Question</button>
+
+    {% if response %}
+        <div class="response">
+            <strong>🤖 AI Text Response:</strong><br>
+            {{ response|linebreaks }}
+            <button class="speak-button" onclick="speakText(`{{ response|escapejs }}`)">🔊 Speak Text</button>
         </div>
-    {% else %}
-        <p class="placeholder">Ask anything about food, fitness, nutrition, or health. 🍎🏃‍♂️💪</p>
     {% endif %}
+
 </div>
 
 <script>
-    function startListening() {
-        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-        recognition.lang = 'en-US';
-        recognition.interimResults = false;
+function speakText(text) {
+    const synth = window.speechSynthesis;
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 1;
+    synth.speak(utterance);
+}
 
-        recognition.start();
-
-        recognition.onresult = function (event) {
-            const transcript = event.results[0][0].transcript;
-            document.getElementById("query").value = transcript;
-            document.getElementById("spokenText").textContent = `🎤 You said: "${transcript}"`;
-        };
-
-        recognition.onerror = function (event) {
-            document.getElementById("spokenText").textContent = "❌ Speech error: " + event.error;
-        };
+function startListening() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert("Your browser doesn't support speech recognition.");
+        return;
     }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        console.log('Voice recognition started');
+    };
+
+    recognition.onspeechend = function() {
+        console.log('Voice recognition ended');
+        recognition.stop();
+    };
+
+    recognition.onresult = function(event) {
+        const query = event.results[0][0].transcript;
+        document.getElementById('query').value = query;
+    };
+
+    recognition.onerror = function(event) {
+        console.log('Error occurred in speech recognition: ' + event.error);
+    };
+
+    recognition.start();
+}
+
+// Validate the form to ensure at least one input method is used
+function validateForm() {
+    const textInput = document.getElementById('query').value.trim();
+
+    if (!textInput) {
+        alert("Please provide a query or use voice input.");
+        return false; // Prevent form submission
+    }
+    return true;
+}
 </script>
 
-<style>
-:root {
-    --bg-light: #f9fafb;
-    --primary-color: #4f46e5;
-    --accent-color: #22c55e;
-    --text-color: #111827;
-    --muted: #6b7280;
-    --bubble-ai: #eef2ff;
-    --bubble-user: #dcfce7;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.chat-container {
-    max-width: 768px;
-    margin: 2rem auto;
-    padding: 2rem;
-    background: white;
-    border-radius: 20px;
-    box-shadow: var(--shadow);
-}
-
-.chat-container h2 {
-    font-size: 1.8rem;
-    margin-bottom: 1.5rem;
-    color: var(--primary-color);
-    font-weight: 700;
-    text-align: center;
-}
-
-.chat-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.chat-form label {
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.chat-form textarea,
-.chat-form input[type="file"] {
-    padding: 1rem;
-    border-radius: 12px;
-    border: 1px solid #d1d5db;
-    font-size: 1rem;
-    line-height: 1.5;
-    transition: border 0.3s;
-}
-
-.chat-form textarea:focus {
-    border-color: var(--primary-color);
-    outline: none;
-}
-
-.chat-form button {
-    background: var(--primary-color);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.2rem;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.3s ease;
-}
-
-.chat-form button:hover {
-    background: #4338ca;
-}
-
-.chat-box {
-    margin-top: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.bubble {
-    padding: 1rem 1.2rem;
-    border-radius: 16px;
-    max-width: 85%;
-    line-height: 1.6;
-    position: relative;
-    font-size: 1rem;
-    box-shadow: var(--shadow);
-    animation: slideIn 0.4s ease-out;
-}
-
-.bubble.user {
-    background-color: var(--bubble-user);
-    align-self: flex-end;
-    border-bottom-right-radius: 0;
-}
-
-.bubble.ai {
-    background-color: var(--bubble-ai);
-    align-self: flex-start;
-    border-bottom-left-radius: 0;
-}
-
-.label {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--muted);
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.placeholder {
-    color: var(--muted);
-    font-style: italic;
-    margin-top: 1rem;
-    text-align: center;
-}
-
-.spoken-text {
-    font-style: italic;
-    color: var(--muted);
-    font-size: 0.9rem;
-}
-
-/* 🎙 Stylish Mic Button */
-.mic-button {
-    background: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 0.8rem 1.4rem;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
-}
-
-.mic-button:hover {
-    background-color: #16a34a;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 14px rgba(34, 197, 94, 0.4);
-}
-
-.mic-icon {
-    font-size: 1.2rem;
-    animation: pulseMic 2s infinite;
-}
-
-@keyframes pulseMic {
-    0% { transform: scale(1); opacity: 0.8; }
-    50% { transform: scale(1.2); opacity: 1; }
-    100% { transform: scale(1); opacity: 0.8; }
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(10px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@media (max-width: 600px) {
-    .chat-container {
-        padding: 1rem;
-        margin: 1rem;
-    }
-
-    .bubble {
-        font-size: 0.95rem;
-        padding: 0.8rem 1rem;
-    }
-
-    .chat-form button {
-        font-size: 0.95rem;
-        padding: 0.6rem 1rem;
-    }
-}
-</style>
 {% endblock %}

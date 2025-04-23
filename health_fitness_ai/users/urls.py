@@ -11,6 +11,9 @@ urlpatterns = [
     path('About/', views.about_view, name='about'),
     path('carrer/', views.carrer_view, name='carrer'),
     path('blogs/', views.blogs_list, name='blogs'),
+    path('contact/', views.contact_view, name='contact'),
+    path('contact/submit/', views.contact_submit, name='contact_submit'),
+    
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
     path('verify-email/', views.verify_email, name='verify_email'),

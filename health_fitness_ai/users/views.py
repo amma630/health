@@ -236,3 +236,78 @@ def edit_profile(request):
         user_form = UserProfileForm(instance=user_profile)
 
     return render(request, 'users/edit_profile.html', {'user_form': user_form})
+
+# View to display the list of all blogs
+def blogs_list(request):
+    return render(request, 'users/blog.html')
+
+# View to display the full blog post details
+def blog_detail(request, slug):
+    # Example hardcoded blogs data (in real-world, you would fetch from a database)
+    blogs_data = {
+        'ai-and-fitness': {
+            'title': 'AI and Fitness: A Perfect Match',
+            'image': 'blog1.jpg',
+            'full_content': 'This is the full content about AI and fitness, explaining how AI is transforming personalized training, injury prevention, and more...'
+        },
+        'tech-wellness': {
+            'title': 'How Tech is Changing Wellness Trends',
+            'image': 'blog2.jpg',
+            'full_content': 'In this blog, we explore the impact of tech innovations on wellness, covering everything from fitness trackers to wellness apps...'
+        },
+        'fitness-journey': {
+            'title': 'Transform Your Fitness Journey',
+            'image': 'blog3.jpeg',
+            'full_content': 'A guide to setting realistic fitness goals and using AI-powered coaching apps to stay on track with your fitness journey...'
+        },
+    }
+
+    # Get the blog data based on slug
+    blog = blogs_data.get(slug, None)
+
+    if blog:
+        return render(request, 'users/blog_detail.html', {
+            'blog_title': blog['title'],
+            'blog_image': blog['image'],
+            'blog_full_content': blog['full_content']
+        })
+    else:
+        # If blog not found, return a 404 or other appropriate response
+        return render(request, '404.html')  # 404 page or custom error page
+
+
+
+def contact_view(request):
+    return render(request, 'users/contactus.html')
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import ContactMessage
+from django.core.mail import send_mail
+from django.conf import settings
+
+def contact_submit(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        message_text = request.POST.get('message')
+
+        # Save to database
+        ContactMessage.objects.create(
+            name=name,
+            email=email,
+            message=message_text
+        )
+
+        # Optional: Send email to admin
+        send_mail(
+            subject=f'New Contact Message from {name}',
+            message=message_text,
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[settings.DEFAULT_FROM_EMAIL],
+            fail_silently=True
+        )
+
+        messages.success(request, 'Thank you for contacting us! We will get back to you soon.')
+        return redirect('contact')
+    return redirect('contact')
+

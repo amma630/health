@@ -186,6 +186,10 @@
           <a href="{% url 'logout' %}" class="hover:text-red-400">Logout</a>
         {% else %}
           <a href="{% url 'home' %}" class="nav-link">Home</a>
+         <a href="{% url 'about' %}" class="nav-link">About</a>
+          <a href="{% url 'carrer' %}" class="nav-link">Career</a>
+          <a href="{% url 'contact' %}" class="nav-link">Contact</a>
+         
           <a href="{% url 'login' %}" class="nav-link text-blue-400">Login</a>
           <a href="{% url 'register' %}" class="nav-link text-green-400">Register</a>
         {% endif %}
@@ -216,6 +220,10 @@
           <a href="{% url 'logout' %}" class="hover:text-red-400" onclick="toggleMenu()">Logout</a>
         {% else %}
           <a href="{% url 'home' %}" class="nav-link" onclick="toggleMenu()">Home</a>
+         <a href="{% url 'about' %}" class="nav-link" onclick="toggleMenu()">About</a>
+          <a href="{% url 'carrer' %}" class="nav-link" onclick="toggleMenu()">Career</a>
+          <a href="{% url 'contact' %}" class="nav-link" onclick="toggleMenu()">Contact</a>
+         
           <a href="{% url 'login' %}" class="nav-link text-blue-400" onclick="toggleMenu()">Login</a>
           <a href="{% url 'register' %}" class="nav-link text-green-400" onclick="toggleMenu()">Register</a>
         {% endif %}

@@ -22,3 +22,13 @@ class UserProfile(models.Model):
         if self.age and not (18 <= self.age <= 100):
             raise ValidationError("Age must be between 18 and 100.")
         # You can add more custom validation or processing logic here.
+
+
+class ContactMessage(models.Model):
+    name = models.CharField(max_length=255)
+    email = models.EmailField()
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Message from {self.name} ({self.email})'

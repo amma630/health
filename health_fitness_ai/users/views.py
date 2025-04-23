@@ -188,6 +188,8 @@ def home_view(request):
     return render(request, 'home.html')
 def about_view(request):
     return render(request, 'users/about.html')
+def carrer_view(request):
+    return render(request, 'users/careers.html')
 
 
 # Notify user signup using Supabase (example feature)
